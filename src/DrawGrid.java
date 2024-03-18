@@ -66,7 +66,6 @@ public class DrawGrid {
         private int popNum;
         private int currentGen = 1;
 
-
         Color[][] grid = new Color[rows][cols];
         public MultiDraw(Dimension dimension)
         {
