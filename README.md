@@ -1,4 +1,4 @@
-Written in Java, this software is two genetic algorithims that compete against each other in games of connect four. Program will display the winner of the current game, as well as the genetic algorithims  
+Written in Java, this software is two genetic algorithims that compete against each other in games of connect four. Program will display the winner of the current game, as well as the genetic algorithims stats.
 
 # Genetic Algorithim Stats
 Yellow, Red Population: <b>42</b><br/>
