@@ -90,6 +90,14 @@ public class DrawGrid
 
         //region Main Update
         @Override
+
+
+        ////////////////////////////////////
+        //TODO:
+        //COMPLETELY CHANGE PAINT COMPONENT SO INSTEAD OF BOTH GOING IN ONE UPDATE,
+        // IT ALTERNATES BETWEEN TURNS,
+        // AND HANDLES GENERATIONS ACCORDINGLY.
+        ////////////////////////////////////
         public void paintComponent(Graphics g)
         {
             Graphics2D g2 = (Graphics2D)g;
@@ -170,6 +178,20 @@ public class DrawGrid
             }
 
             g2.setColor(Color.white);
+
+            avgFitness();
+
+            g.drawString("Yellow Current Gene: " + yellowPieces.get(popNum).currentGene, 425, 60);
+            g.drawString("Red Current Gene: "  + redPieces.get(popNum).currentGene, 425, 80);
+            g.drawString("Current Population: "  + popNum, 425, 100);
+            g.drawString("Current Generation: "  + currentGen, 425, 120);
+            g.drawString("Yellow Current Fitness: " + yellowPieces.get(popNum).fitness, 425, 140);
+            g.drawString("Red Current Fitness: " + redPieces.get(popNum).fitness, 425, 160);
+            g.drawString("Yellow Average Fitness: " + Math.round(yellowAvgFit * 100.0) / 100.0, 425, 180);
+            g.drawString("Red Average Fitness: " + Math.round(redAvgFit * 100.0) / 100.0, 425, 200);
+
+            repaint();
+
             if(!winner)
             {
                 if(redTurn)
@@ -186,28 +208,7 @@ public class DrawGrid
 
                 //If you want to stop game after a win for debug reasons, comment out reset call and uncomment try catch
                 resetGame();
-
-                /*try {
-                    Thread.sleep(2000);
-                }
-                catch(InterruptedException e)
-                {
-                    System.out.println(e.getMessage());
-                }*/
             }
-
-            avgFitness();
-
-            g.drawString("Yellow Current Gene: " + yellowPieces.get(popNum).currentGene, 425, 60);
-            g.drawString("Red Current Gene: "  + redPieces.get(popNum).currentGene, 425, 80);
-            g.drawString("Current Population: "  + popNum, 425, 100);
-            g.drawString("Current Generation: "  + currentGen, 425, 120);
-            g.drawString("Yellow Current Fitness: " + yellowPieces.get(popNum).fitness, 425, 140);
-            g.drawString("Red Current Fitness: " + redPieces.get(popNum).fitness, 425, 160);
-            g.drawString("Yellow Average Fitness: " + Math.round(yellowAvgFit * 100.0) / 100.0, 425, 180);
-            g.drawString("Red Average Fitness: " + Math.round(redAvgFit * 100.0) / 100.0, 425, 200);
-
-            repaint();
 
             //COMMENT THIS OUT TO MAKE GAME PROGRESS WITHOUT A DELAY
             try {
@@ -262,6 +263,7 @@ public class DrawGrid
                         grid[row][col] = Color.white;
                     }
                 }
+
                 elitism();
                 yellowPieces.clear();
                 yellowPieces = new ArrayList<GAEnemy>(tYellowPop);
@@ -295,6 +297,7 @@ public class DrawGrid
         public void elitism()
         {
             yellowFittest = (ArrayList<GAEnemy>)yellowPieces.clone();
+            //Sorting the most fit for the yellow GA
             for(int i = 0; i < yellowFittest.size() - 1; i++)
             {
                 for(int j = 0; j < yellowFittest.size() - 1; j++)
@@ -311,17 +314,19 @@ public class DrawGrid
                     }
                 }
             }
+            //Remove the most unfit for the yellow GA
             for(int i = 0; i < yellowFittest.size(); i++)
             {
                 for(int j = 0; j < yellowFittest.size(); j++)
                 {
-                    if(j >= yellowElitismAmount)
+                    if(j >= yellowElitismAmount - 1)
                     {
                         yellowFittest.remove(j);
                     }
                 }
             }
 
+            //Sorting the most fit for the red GA
             redFittest = (ArrayList<GAEnemy>)redPieces.clone();
             for(int i = 0; i < redFittest.size() - 1; i++)
             {
@@ -339,11 +344,12 @@ public class DrawGrid
                     }
                 }
             }
+            //Remove the most unfit for the red GA
             for(int i = 0; i < redFittest.size(); i++)
             {
                 for(int j = 0; j < redFittest.size(); j++)
                 {
-                    if(j >= redElitismAmount)
+                    if(j >= redElitismAmount - 1)
                     {
                         redFittest.remove(j);
                     }
@@ -354,12 +360,13 @@ public class DrawGrid
 
         public void selectParents()
         {
+            tYellowPop.addAll(yellowFittest);
             for (int i = 0; i < (yellowPopSize - yellowElitismAmount) / 2; i++)
             {
-                int momPos = random.nextInt(yellowPieces.size() - 1);
-                int dadPos = random.nextInt(yellowPieces.size() - 1);
-                GAEnemy mom = yellowPieces.get(momPos);
-                GAEnemy dad = yellowPieces.get(dadPos);
+                int momPos = random.nextInt(yellowFittest.size() - 1);
+                int dadPos = random.nextInt(yellowFittest.size() - 1);
+                GAEnemy mom = yellowFittest.get(momPos);
+                GAEnemy dad = yellowFittest.get(dadPos);
                 if(momPos != dadPos)
                 {
                     //crossover
@@ -369,18 +376,15 @@ public class DrawGrid
                 {
                     i--;
                 }
-            }
-            for(int i = 0; i < yellowElitismAmount; i++)
-            {
-                tYellowPop.add(yellowFittest.get(i));
             }
 
+            tRedPop.addAll(redFittest);
             for (int i = 0; i < (redPopSize - redElitismAmount) / 2; i++)
             {
-                int momPos = random.nextInt(redPieces.size() - 1);
-                int dadPos = random.nextInt(redPieces.size() - 1);
-                GAEnemy mom = redPieces.get(momPos);
-                GAEnemy dad = redPieces.get(dadPos);
+                int momPos = random.nextInt(redFittest.size() - 1);
+                int dadPos = random.nextInt(redFittest.size() - 1);
+                GAEnemy mom = redFittest.get(momPos);
+                GAEnemy dad = redFittest.get(dadPos);
                 if(momPos != dadPos)
                 {
                     //crossover
@@ -390,10 +394,6 @@ public class DrawGrid
                 {
                     i--;
                 }
-            }
-            for(int i = 0; i < redElitismAmount; i++)
-            {
-                tRedPop.add(redFittest.get(i));
             }
         }
 
@@ -402,38 +402,50 @@ public class DrawGrid
             GAEnemy baby1 = new GAEnemy();
             GAEnemy baby2 = new GAEnemy();
 
-            int crossVal = random.nextInt(redChromoLength);
+            //Yellow Crossover
+            int crossVal = random.nextInt(yellowChromoLength);
 
-            for (int i = 0; i < crossVal; i++)
+            baby1.geneList = mom.geneList;
+            baby2.geneList = dad.geneList;
+
+            for(int i = crossVal; i < baby1.geneList.size(); i++)
             {
-                baby1.geneList.add(mom.geneList.get(i));
-                baby2.geneList.add(dad.geneList.get(i));
+                Integer temp = baby1.geneList.get(i);
+                baby1.geneList.set(i, baby2.geneList.get(i));
+                baby2.geneList.set(i, temp);
             }
 
-            if(redTurn)
-            {
-                for(int i = crossVal; i < redChromoLength; i++)
-                {
-                    baby1.geneList.add(dad.geneList.get(i));
-                    baby2.geneList.add(mom.geneList.get(i));
-                }
-            }
-            else
-            {
-                for(int i = crossVal; i < yellowChromoLength; i++)
-                {
-                    baby1.geneList.add(dad.geneList.get(i));
-                    baby2.geneList.add(mom.geneList.get(i));
-                }
-            }
-            tRedPop.add(baby1);
-            tRedPop.add(baby2);
             if(random.nextInt(100) == 1)
             {
                 //mutation
                 mutate(baby1);
                 mutate(baby2);
             }
+
+            tYellowPop.add(baby1);
+            tYellowPop.add(baby2);
+
+            crossVal = random.nextInt(redChromoLength);
+
+            baby1.geneList = mom.geneList;
+            baby2.geneList = dad.geneList;
+
+            for(int i = crossVal; i < baby1.geneList.size(); i++)
+            {
+                Integer temp = baby1.geneList.get(i);
+                baby1.geneList.set(i, baby2.geneList.get(i));
+                baby2.geneList.set(i, temp);
+            }
+
+            if(random.nextInt(100) == 1)
+            {
+                //mutation
+                mutate(baby1);
+                mutate(baby2);
+            }
+
+            tRedPop.add(baby1);
+            tRedPop.add(baby2);
         }
 
         private void mutate(GAEnemy piece)
@@ -464,43 +476,46 @@ public class DrawGrid
          */
         public int findLowestWhite(int clickedCol, boolean redTurn)
         {
-            int clickedRow = grid.length-1;
+            int clickedRow = 0;
+
+            if(checkIfBoardFull())
+            {
+                resetGame();
+            }
+
+            if(!grid[clickedRow][clickedCol].equals(Color.white))
+            {
+                yellowPieces.get(popNum).currentGene = newGene();
+                return findLowestWhite(yellowPieces.get(popNum).currentGene, redTurn);
+            }
 
             //Starts at top, and the column the gene is at, will drop rows till it finds a white grid cell.
-            while(clickedRow >= 0)
+            while(clickedRow <= grid.length - 1)
             {
                 //Checks current grid cell for yellow if it's not red's turn.
                 if(grid[clickedRow][yellowPieces.get(popNum).currentGene].equals(Color.white) && !redTurn)
                 {
-                    if(clickedRow == 0)
+                    if(clickedRow == grid.length - 1)
                         return clickedRow;
                     //Check the grid cell below the current one to ensure it is the lowest white cell.
-                    if(grid[clickedRow-1][yellowPieces.get(popNum).currentGene].equals(Color.white))
+                    else if(grid[clickedRow+1][yellowPieces.get(popNum).currentGene] != Color.white)
                     {
                         return clickedRow;
-                    }
-                    else
-                    {
-                        continue;
                     }
                 }
 
                 //Checks current grid cell for red if it is red's turn.
                 else if(grid[clickedRow][redPieces.get(popNum).currentGene].equals(Color.white) && redTurn)
                 {
-                    if(clickedRow == 0)
+                    if(clickedRow == grid.length - 1)
                         return clickedRow;
                     //Check the grid cell below the current one to ensure it is the lowest white cell.
-                    if(grid[clickedRow-1][redPieces.get(popNum).currentGene].equals(Color.white))
+                    else if(grid[clickedRow+1][redPieces.get(popNum).currentGene] != Color.white)
                     {
                         return clickedRow;
                     }
-                    else
-                    {
-                        continue;
-                    }
                 }
-                clickedRow--;
+                clickedRow++;
             }
             if(!redTurn)
                 yellowPieces.get(popNum).currentGene = newGene();
@@ -508,6 +523,22 @@ public class DrawGrid
                 redPieces.get(popNum).currentGene = newGene();
 
             return findLowestWhite(clickedCol, redTurn);
+        }
+
+        private boolean checkIfBoardFull()
+        {
+            boolean[] fullTopRow = {
+                    grid[0][0] != Color.white,
+                    grid[0][1] != Color.white,
+                    grid[0][2] != Color.white,
+                    grid[0][3] != Color.white,
+                    grid[0][4] != Color.white,
+                    grid[0][5] != Color.white,
+                    grid[0][6] != Color.white
+            };
+
+            for(boolean b : fullTopRow) if(!b) return false;
+            return true;
         }
 
         public void resetGame()
