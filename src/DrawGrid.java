@@ -26,20 +26,17 @@ public class DrawGrid
     }
     //endregion
 
+    @SuppressWarnings("SuspiciousListRemoveInLoop")
     public static class MultiDraw extends JPanel  implements MouseListener {
 
-        //region Variables
-        private int startX = 10;
-        private int startY = 10;
-        private int cellSize = 60;
-        private int turn = 2;
-        private int rows = 6;
-        private int cols = 7;
+        private final int rows = 6;
+        private final int cols = 7;
         private boolean winner = false;
         //Current Color
         private String cColor = "";
         //Controls whose turn it is in game
         private boolean redTurn = true;
+        private boolean redStarted;
         private ArrayList<GAEnemy> yellowPieces = new ArrayList<>();
         private ArrayList<GAEnemy> redPieces = new ArrayList<>();
 
@@ -62,8 +59,8 @@ public class DrawGrid
         private ArrayList<GAEnemy> redFittest = new ArrayList<>();
 
         //Holds population of red and yellow pieces
-        private ArrayList<GAEnemy> tYellowPop = new ArrayList<>();
-        private ArrayList<GAEnemy> tRedPop = new ArrayList<>();
+        private final ArrayList<GAEnemy> tYellowPop = new ArrayList<>();
+        private final ArrayList<GAEnemy> tRedPop = new ArrayList<>();
 
         private int gameSpeed = 100;
 
@@ -85,30 +82,23 @@ public class DrawGrid
                     grid[row][col] = Color.white;
                 }
             }
+            redStarted = redTurn;
             initializeGA();
         }
 
         //region Main Update
+        @SuppressWarnings("ForLoopReplaceableByForEach")
         @Override
-
-
-        ////////////////////////////////////
-        //TODO:
-        //COMPLETELY CHANGE PAINT COMPONENT SO INSTEAD OF BOTH GOING IN ONE UPDATE,
-        // IT ALTERNATES BETWEEN TURNS,
-        // AND HANDLES GENERATIONS ACCORDINGLY.
-        ////////////////////////////////////
         public void paintComponent(Graphics g)
         {
             Graphics2D g2 = (Graphics2D)g;
             Dimension d = getSize();
             g2.setColor(new Color(0, 0, 255));
             g2.fillRect(0,0,d.width,d.height);
-            startX = 0;
-            startY = 0;
+            int startX = 0;
+            int startY = 0;
 
-            redTurn = turn % 2 == 0;
-            //Yellow going
+            //region Yellow Turn
             if(!redTurn && !winner)
             {
                 int clickedRow = 0;
@@ -120,8 +110,7 @@ public class DrawGrid
                 cColor =  "Yellow";
 
                 updateGA();
-                turn++;
-                redTurn = true;
+                //redTurn = true;
 
                 if(isWinner(clickedCol, clickedRow, grid[clickedRow][clickedCol]))
                 {
@@ -134,8 +123,9 @@ public class DrawGrid
                 }
 
             }
+            //endregion
 
-            //Red placing
+            //region Red Turn
             if(redTurn && !winner)
             {
                 int clickedRow = 0;
@@ -147,8 +137,7 @@ public class DrawGrid
                 cColor =  "Red";
 
                 updateGA();
-                turn++;
-                redTurn = true;
+                //redTurn = false;
 
                 if(isWinner(clickedCol,clickedRow, grid[clickedRow][clickedCol]))
                 {
@@ -161,16 +150,20 @@ public class DrawGrid
                     }
                 }
             }
+            //endregion
 
+            //Makes playing grid
             for (int row = 0; row < grid.length; row++)
             {
+                //region Variables
+                int cellSize = 60;
                 for (int col = 0; col < grid[0].length; col++)
                 {
 
                     g2.setColor(grid[row][col]);
-                    g2.fillRect(startX,startY,cellSize,cellSize);
+                    g2.fillRect(startX,startY, cellSize, cellSize);
                     g2.setColor(Color.black);
-                    g2.drawRect(startX,startY,cellSize,cellSize);
+                    g2.drawRect(startX,startY, cellSize, cellSize);
                     startX += cellSize;
                 }
                 startY += cellSize;
@@ -179,6 +172,7 @@ public class DrawGrid
 
             g2.setColor(Color.white);
 
+            //Calculates average fitness of red and yellow.
             avgFitness();
 
             g.drawString("Yellow Current Gene: " + yellowPieces.get(popNum).currentGene, 425, 60);
@@ -194,6 +188,7 @@ public class DrawGrid
 
             if(!winner)
             {
+                redTurn = !redTurn;
                 if(redTurn)
                 {
                     g2.drawString("Red's Turn",450,20);
@@ -202,8 +197,7 @@ public class DrawGrid
                     g2.drawString("Yellow's Turn",450,20);
                 }
             }
-            else if(winner)
-            {
+            else {
                 g2.drawString("WINNER - "+ cColor,450,20);
 
                 //If you want to stop game after a win for debug reasons, comment out reset call and uncomment try catch
@@ -255,7 +249,9 @@ public class DrawGrid
                 popNum = 0;
                 winner = false;
                 currentGen += 1;
-                turn=2;
+                //If red started this generation, yellow will start the next generation.
+                redTurn = !redStarted;
+                redStarted = redTurn;
                 for (int row = 0; row < grid.length; row++)
                 {
                     for (int col = 0; col < grid[0].length; col++)
@@ -278,22 +274,21 @@ public class DrawGrid
 
         }
 
+        @SuppressWarnings("ForLoopReplaceableByForEach")
         public void avgFitness()
         {
             float yAvgFit = 0;
             for(int i = 0; i < yellowPieces.size(); i++)
-            {
                 yAvgFit += yellowPieces.get(i).fitness;
-            }
             yellowAvgFit = (yAvgFit / yellowPieces.size());
 
+            float rAvgFit = 0;
             for(int i = 0; i < redPieces.size(); i++)
-            {
-                yAvgFit += redPieces.get(i).fitness;
-            }
-            redAvgFit = (yAvgFit / redPieces.size());
+                rAvgFit += redPieces.get(i).fitness;
+            redAvgFit = (rAvgFit / redPieces.size());
         }
 
+        @SuppressWarnings("unchecked")
         public void elitism()
         {
             yellowFittest = (ArrayList<GAEnemy>)yellowPieces.clone();
@@ -544,7 +539,8 @@ public class DrawGrid
         public void resetGame()
         {
             winner=false;
-            turn=2;
+            //Since we are not starting a new generation in resetGame, ensure red goes next if they started first.
+            redTurn = redStarted;
             for (int row = 0; row < grid.length; row++)
             {
                 for (int col = 0; col < grid[0].length; col++)
