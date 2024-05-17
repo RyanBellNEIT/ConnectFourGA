@@ -1,7 +1,7 @@
 Written in Java, this software is two genetic algorithims that compete against each other in games of connect four. Program will display the winner of the current game, as well as the genetic algorithims stats.
 
 ## Showcase:
-https://github.com/RyanBellNEIT/ConnectFourGA/assets/72520510/160dfd3b-edeb-47ca-a4eb-33595296baab
+https://github.com/RyanBellNEIT/ConnectFourGA/assets/72520510/8ce5fe40-ce1f-4195-91f5-2492b3694162
 
 ## Genetic Algorithim Stats
 Yellow, Red Population: <b>42</b><br/>
